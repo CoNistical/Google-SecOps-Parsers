@@ -1,0 +1,1470 @@
+filter {
+  mutate {
+    replace => {
+      "udm_event.idm.read_only_udm.metadata.vendor_name" => "Net Suite"
+      "udm_event.idm.read_only_udm.metadata.event_type" => "GENERIC_EVENT"
+
+      "title" => ""
+      "type" => ""
+      "user" => ""
+      "scripttype" => ""
+      "name.script" => ""
+
+      "detail_message" => ""
+      
+      
+      "client_ref_code" => ""
+      "client_ref_solutionid" => ""
+      #"action_list" => ""
+      "card_number" => ""
+      "expiration_month" => ""
+      "expiration_year" => ""
+      "security_code" => ""
+      "card_type" => ""
+      "commerce_indicator" => ""
+      "total_order_amount" => ""
+      "discount_amount" => ""
+      "tax_amount" => ""
+      "billing_first_name" => ""
+      "billing_last_name" => ""
+      "billing_address" => ""
+      "billing_city" => ""
+      "billing_state" => ""
+      "billing_postal_code" => ""
+      "billing_country" => ""
+      "email" => ""
+      "phone_number" => ""
+      "shipping_first_name" => ""
+      "shipping_last_name" => ""
+      "shipping_address" => ""
+      "shipping_city" => ""
+      "shipping_state" => ""
+      "shipping_postal_code" => ""
+      "shipping_coutnry" => ""
+
+      "detail_name" => ""
+
+      "detail_consumer_auth_info" => ""
+      "detail_id" => ""
+      "detail_orderinformation_amountdetails_authorized_amount" => ""
+      "detail_paymentinfo_accountfeatures_category" => ""
+      "detail_paymentinfo_scheme" => ""
+      "detail_paymentinfo_bin" => ""
+      "detail_paymentinfo_account_type" => ""
+      "detail_paymentinfo_card_issuer" => ""
+      "detail_paymentinfo_bin_country" => ""
+      "detail_processor_information_approval_code" => ""
+      "detail_processor_information_cardverification_result_code" => ""
+      "detail_processor_network_transaction_id" => ""
+      "detail_processor_consumer_auth_response_code" => ""
+      "detail_processor_transaction_id" => ""
+      "detail_processor_response_code" => ""
+      "detail_processor_avs_code" => ""
+      "detail_risk_score_result" => ""
+      "detail_risk_profile_early_decision" => ""
+      "detail_risk_profile_name" => ""
+      "detail_risk_profile_selector_rule" => ""
+      "detail_status" => ""
+
+      "detail_address_validation_response_transaction_reference_customer_context" => ""
+      "detail_address_validation_response_status_code" => ""
+      "detail_address_validation_response_status_description" => ""
+      "detail_address_validation_result_rank" => ""
+      "detail_address_validation_result_quality" => ""
+      "detail_address_validation_result_address_city" => ""
+      "detail_address_validation_result_address_state_province_code" => ""
+      "detail_address_validation_result_postal_code_low_end" => ""
+      "detail_address_validation_result_postal_code_high_end" => ""
+    }
+  }
+
+  # Parse JSON
+  json {
+    source => "message"
+    array_function => "split_columns"
+    on_error => "_not_json"
+  }
+
+  if [_not_json] {
+    drop { tag => "TAG_MALFORMED_MESSAGE"}
+  }
+
+  # Title field
+  if [title] != "" {
+    mutate {
+        replace => {
+            "title_field.key" => "title"
+            "title_field.value.string_value" => "%{title}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "title_field"
+        }
+    }
+  }
+
+  # Type field
+  if [type] != "" {
+    mutate {
+        replace => {
+            "type_field.key" => "type"
+            "type_field.value.string_value" => "%{type}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "type_field"
+        }
+    }
+  }
+
+  # User field
+  if [user] != "" {
+    mutate {
+        replace => {
+            "user_field.key" => "user"
+            "user_field.value.string_value" => "%{user}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "user_field"
+        }
+    }
+  }
+
+  # Script type field
+  if [scripttype] != "" {
+    mutate {
+        replace => {
+            "scripttype_field.key" => "scriptType"
+            "scripttype_field.value.string_value" => "%{scripttype}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "scripttype_field"
+        }
+    }
+  }
+
+  # Script name field
+  if [name][script] != "" {
+    mutate {
+        replace => {
+            "scriptname_field.key" => "scriptName"
+            "scriptname_field.value.string_value" => "%{name.script}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "scriptname_field"
+        }
+    }
+  }
+
+  # Replace detail_message
+  mutate {
+    replace => {
+        "detail_message" => "%{detail.message}"
+    }
+    on_error => "_no_detail_message"
+  }
+  # Logic for detail_message field
+  if ![_no_detail_message] and [detail_message] != "" {
+    mutate {
+        replace => {
+            "detailmessage_field.key" => "detailMessage"
+            "detailmessage_field.value.string_value" => "%{detail.message}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailmessage_field"
+        }
+    }
+  }
+
+  # Replace client_ref_code
+  mutate {
+    replace => {
+        "client_ref_code" => "%{detail.clientReferenceInformation.code}"
+    }
+    on_error => "_no_clientref_path"
+  }
+  # Logic for client_ref_code field
+  if ![_no_clientref_path] and [client_ref_code] != "" {
+    mutate {
+        replace => {
+            "clientref_field.key" => "clientReferenceCode"
+            "clientref_field.value.string_value" => "%{detail.clientReferenceInformation.code}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "clientref_field"
+        }
+    }
+  }
+
+  # Replace client_ref_solutionid
+  mutate {
+    replace => {
+        "client_ref_solutionid" => "%{detail.clientReferenceInformation.partner.solutionId}"
+    }
+    on_error => "_no_clientref_solutionid"
+  }
+  # Logic for client_ref_solutionid
+  if ![_no_clientref_solutionid] and [client_ref_solutionid] != "" {
+    mutate {
+        replace => {
+            "solutionid_field.key" => "clientSolutionId"
+            "solutionid_field.value.string_value" => "%{detail.clientReferenceInformation.partner.solutionId}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "solutionid_field"
+        }
+    }
+  }
+
+  # Replace card_number
+  mutate {
+    replace => {
+        "card_number" => "%{detail.paymentInformation.card.number}"
+    }
+    on_error => "_no_card_number"
+  }
+  # Logic for card_number
+  if ![_no_card_number] and [card_number] != "" {
+    mutate {
+        replace => {
+            "cardnumber_field.key" => "cardNumber"
+            "cardnumber_field.value.string_value" => "%{detail.paymentInformation.card.number}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "cardnumber_field"
+        }
+    }
+  }
+
+  # Replace expiration_month
+  mutate {
+    replace => {
+        "expiration_month" => "%{detail.paymentInformation.card.expirationMonth}"
+    }
+    on_error => "_no_expiration_month"
+  }
+  #Logic for expiration_month
+  if ![_no_expiration_month] and [expiration_month] != "" {
+    mutate {
+        replace => {
+            "expmonth_field.key" => "expirationMonth"
+            "expmonth_field.value.string_value" => "%{detail.paymentInformation.card.expirationMonth}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "expmonth_field"
+        }
+    }
+  }
+
+  # Replace expiration_year
+  mutate {
+    replace => {
+        "expiration_year" => "%{detail.paymentInformation.card.expirationYear}"
+    }
+    on_error => "_no_expiration_year"
+  }
+  # Logic for expiration_year
+  if ![_no_expiration_year] and [expiration_year] != "" {
+    mutate {
+        replace => {
+            "expyear_field.key" => "expirationYear"
+            "expyear_field.value.string_value" => "%{detail.paymentInformation.card.expirationYear}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "expyear_field"
+        }
+    }
+  }
+
+  # Replace security_code
+  mutate {
+    replace => {
+        "security_code" => "%{detail.paymentInformation.card.securityCode}"
+    }
+    on_error => "_no_security_code"
+  }
+  # Logic for security_code
+  if ![_no_security_code] and [security_code] != "" {
+    mutate {
+        replace => {
+            "securitycode_field.key" => "securityCode"
+            "securitycode_field.value.string_value" => "%{detail.paymentInformation.card.securityCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "securitycode_field"
+        }
+    }
+  }
+
+  # Replace card_type
+  mutate {
+    replace => {
+        "card_type" => "%{detail.paymentInformation.card.type}"
+    }
+    on_error => "_no_card_type"
+  }
+  # Logic for card_type
+  if ![_no_card_type] and [card_type] != "" {
+    mutate {
+        replace => {
+            "cardtype_field.key" => "cardType"
+            "cardtype_field.value.string_value" => "%{detail.paymentInformation.card.type}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "cardtype_field"
+        }
+    }
+  }
+
+  # Replace commerce_indicator
+  mutate {
+    replace => {
+        "commerce_indicator" => "%{detail.processingInformation.commerceIndicator}"
+    }
+    on_error => "_no_commerce_indicator"
+  }
+  # Logic for commerce_indicator
+  if ![_no_commerce_indicator] and [commerce_indicator] != "" {
+    mutate {
+        replace => {
+            "commerceindicator_field.key" => "commerceIndicator"
+            "commerceindicator_field.value.string_value" => "%{detail.processingInformation.commerceIndicator}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "commerceindicator_field"
+        }
+    }
+  }
+
+  # Replace total_order_amount
+  mutate {
+    replace => {
+        "total_order_amount" => "%{detail.orderInformation.amountDetails.totalAmount}"
+    }
+    on_error => "_no_total_order_amount"
+  }
+  # Logic for total_order_amount
+  if ![_no_total_order_amount] and [total_order_amount] != "" {
+    mutate {
+        replace => {
+            "ordertotal_field.key" => "totalOrderAmount"
+            "ordertotal_field.value.string_value" => "%{detail.orderInformation.amountDetails.totalAmount}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "ordertotal_field"
+        }
+    }
+  }
+
+  # Replace discount_amount
+  mutate {
+    replace => {
+        "discount_amount" => "%{detail.orderInformation.amountDetails.discountAmount}"
+    }
+    on_error => "_no_discount_amount"
+  }
+  # Logic for discount_amount
+  if ![_no_discount_amount] and [discount_amount] != "" {
+    mutate {
+        replace => {
+            "discount_field.key" => "discountAmount"
+            "discount_field.value.string_value" => "%{detail.orderInformation.amountDetails.discountAmount}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "discount_field"
+        }
+    }
+  }
+
+  # Replace tax_amount
+  mutate {
+    replace => {
+        "tax_amount" => "%{detail.orderInformation.amountDetails.taxAmount}"
+    }
+    on_error => "_no_tax_amount"
+  }
+  # Logic for tax_amount
+  if ![_no_tax_amount] and [tax_amount] != "" {
+    mutate {
+        replace => {
+            "taxamount_field.key" => "taxAmount"
+            "taxamount_field.value.string_value" => "%{detail.orderInformation.amountDetails.taxAmount}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "taxamount_field"
+        }
+    }
+  }
+
+  # Replace billing_first_name
+  mutate {
+    replace => {
+        "billing_first_name" => "%{detail.orderInformation.billTo.firstName}"
+    }
+    on_error => "_no_billing_first_name"
+  }
+  # Logic for bill_first_name
+  if ![_no_billing_first_name] and [billing_first_name] != "" {
+    mutate {
+        replace => {
+            "billfirstname_field.key" => "billingFirstName"
+            "billfirstname_field.value.string_value" => "%{detail.orderInformation.billTo.firstName}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "billfirstname_field"
+        }
+    }
+  }
+
+  # Replace billing_last_name
+  mutate {
+    replace => {
+        "billing_last_name" => "%{detail.orderInformation.billTo.lastName}"
+    }
+    on_error => "_no_billing_last_name"
+  }
+  # Logic bill_last_name
+  if ![_no_billing_last_name] and [billing_last_name] != "" {
+    mutate {
+        replace => {
+            "billlastname_field.key" => "billingLastName"
+            "billlastname_field.value.string_value" => "%{detail.orderInformation.billTo.lastName}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "billlastname_field"
+        }
+    }
+  }
+
+  # Replace billing_address
+  mutate {
+    replace => {
+        "billing_address" => "%{detail.orderInformation.billTo.address1}"
+    }
+    on_error => "_no_billing_address"
+  }
+  # Logic for billing_address
+  if ![_no_billing_address] and [billing_address] != "" {
+    mutate {
+        replace => {
+            "billingaddress_field.key" => "billingAddress"
+            "billingaddress_field.value.string_value" => "%{detail.orderInformation.billTo.address1}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "billingaddress_field"
+        }
+    }
+  }
+
+  # Replace billing_city
+  mutate {
+    replace => {
+        "billing_city" => "%{detail.orderInformation.billTo.locality}"
+    }
+    on_error => "_no_billing_city"
+  }
+  # Logic for billing_city
+  if ![_no_billing_city] and [billing_city] != "" {
+    mutate {
+        replace => {
+            "billingcity_field.key" => "billingCity"
+            "billingcity_field.value.string_value" => "%{detail.orderInformation.billTo.locality}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "billingcity_field"
+        }
+    }
+  }
+
+  # Replace billing_state
+  mutate {
+    replace => {
+        "billing_state" => "%{detail.orderInformation.billTo.administrativeArea}"
+    }
+    on_error => "_no_billing_state"
+  }
+  # Logic billing_state
+  if ![_no_billing_state] and [billing_state] != "" {
+    mutate {
+        replace => {
+            "billingstate_field.key" => "billingState"
+            "billingstate_field.value.string_value" => "%{detail.orderInformation.billTo.administrativeArea}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "billingstate_field"
+        }
+    }
+  }
+
+  #Replace billing_postal_code
+  mutate {
+    replace => {
+        "billing_postal_code" => "%{detail.orderInformation.billTo.postalCode}"
+    }
+    on_error => "_no_billing_postal_code"
+  }
+  # Logic billing_postal_code
+  if ![_no_billing_postal_code] and [billing_postal_code] != "" {
+    mutate {
+        replace => {
+            "billingpostal_field.key" => "billingPostalCode"
+            "billingpostal_field.value.string_value" => "%{detail.orderInformation.billTo.postalCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "billingpostal_field"
+        }
+    }
+  }
+
+  # Replace billing_country
+  mutate {
+    replace => {
+        "billing_country" => "%{detail.orderInformation.billTo.country}"
+    }
+    on_error => "_no_billing_country"
+  }
+  # Logic billing_country
+  if ![_no_billing_country] and [billing_country] != "" {
+    mutate {
+        replace => {
+            "billingcountry_field.key" => "billingCountry"
+            "billingcountry_field.value.string_value" => "%{detail.orderInformation.billTo.country}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "billingcountry_field"
+        }
+    }
+  }
+
+  # Replace email
+  mutate {
+    replace => {
+        "email" => "%{detail.orderInformation.billTo.email}"
+    }
+    on_error => "_no_email"
+  }
+  # Logic for email
+  if ![_no_email] and [email] != "" {
+    mutate {
+        replace => {
+            "email_field.key" => "emailAddress"
+            "email_field.value.string_value" => "%{detail.orderInformation.billTo.email}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "email_field"
+        }
+    }
+  }
+
+  # Replace phone_number
+  mutate {
+    replace => {
+        "phone_number" => "%{detail.orderInformation.billTo.phoneNumber}"
+    }
+    on_error => "_no_phone_number"
+  }
+  # Logic phone_number
+  if ![_no_phone_number] and [phone_number] != "" {
+    mutate {
+        replace => {
+            "phone_field.key" => "phoneNumber"
+            "phone_field.value.string_value" => "%{detail.orderInformation.billTo.phoneNumber}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "phone_field"
+        }
+    }
+  }
+
+  # Replace shipping_first_name
+  mutate {
+    replace => {
+        "shipping_first_name" => "%{detail.orderInformation.shipTo.firstName}"
+    }
+    on_error => "_no_shipping_first_name"
+  }
+  # Logic shipping_first_name
+  if ![_no_shipping_first_name] and [shipping_first_name] != "" {
+    mutate {
+        replace => {
+            "shippingfirstname_field.key" => "shippingFirstName"
+            "shippingfirstname_field.value.string_value" => "%{detail.orderInformation.shipTo.firstName}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "shippingfirstname_field"
+        }
+    }
+  }
+
+  # Replace shipping_last_name
+  mutate {
+    replace => {
+        "shipping_last_name" => "%{detail.orderInformation.shipTo.lastName}"
+    }
+    on_error => "_no_shipping_last_name"
+  }
+  # Logic shipping_last_name
+  if ![_no_shipping_last_name] and [shipping_last_name] != "" {
+    mutate {
+        replace => {
+            "shippinglastname_field.key" => "shippingLastName"
+            "shippinglastname_field.value.string_value" => "%{detail.orderInformation.shipTo.lastName}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "shippinglastname_field"
+        }
+    }
+  }
+
+  # Replace shipping_address
+  mutate {
+    replace => {
+        "shipping_address" => "%{detail.orderInformation.shipTo.address1}"
+    }
+    on_error => "_no_shipping_address"
+  }
+  # Logic shipping_address
+  if ![_no_shipping_address] and [shipping_address] != "" {
+    mutate {
+        replace => {
+            "shippingaddress_field.key" => "shippingAddress"
+            "shippingaddress_field.value.string_value" => "%{detail.orderInformation.shipTo.address1}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "shippingaddress_field"
+        }
+    }
+  }
+
+  # Replace shipping_city
+  mutate {
+    replace => {
+        "shipping_city" => "%{detail.orderInformation.shipTo.locality}"
+    }
+    on_error => "_no_shipping_city"
+  }
+  # Logic shipping_city
+  if ![_no_shipping_city] and [shipping_city] != "" {
+    mutate {
+        replace => {
+            "shippingcity_field.key" => "shippingCity"
+            "shippingcity_field.value.string_value" => "%{detail.orderInformation.shipTo.locality}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "shippingcity_field"
+        }
+    }
+  }
+
+  # Replace shipping_state
+  mutate {
+    replace => {
+        "shipping_state" => "%{detail.orderInformation.shipTo.administrativeArea}"
+    }
+    on_error => "_no_shipping_state"
+  }
+  # Logic shipping_state
+  if ![_no_shipping_state] and [shipping_state] != "" {
+    mutate {
+        replace => {
+            "shippingstate_field.key" => "shippingState"
+            "shippingstate_field.value.string_value" => "%{detail.orderInformation.shipTo.administrativeArea}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "shippingstate_field"
+        }
+    }
+  }
+
+  # Replace shipping_postal_code
+  mutate {
+    replace => {
+        "shipping_postal_code" => "%{detail.orderInformation.shipTo.postalCode}"
+    }
+    on_error => "_no_shipping_postal_code"
+  }
+  # Logic shipping_postal_code
+  if ![_no_shipping_postal_code] and [shipping_postal_code] != "" {
+    mutate {
+        replace => {
+            "shippingpostalcode_field.key" => "shippingPostalCode"
+            "shippingpostalcode_field.value.string_value" => "%{detail.orderInformation.shipTo.postalCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "shippingpostalcode_field"
+        }
+    }
+  }
+
+  # Replace shipping_country
+  mutate {
+    replace => {
+        "shipping_country" => "%{detail.orderInformation.shipTo.country}"
+    }
+    on_error => "_no_shipping_country"
+  }
+  # Logic for shipping_postal_code
+  if ![_no_shipping_country] and [shipping_country] != "" {
+    mutate {
+        replace => {
+            "shippingcountry_field.key" => "shippingCountry"
+            "shippingcountry_field.value.string_value" => "%{detail.orderInformation.shipTo.country}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "shippingcountry_field"
+        }
+    }
+  }
+
+  # Replace detail_name
+  mutate {
+    replace => {
+        "detail_name" => "%{detail.name}"
+    }
+    on_error => "_no_detail_name"
+  }
+  # Logic for detail_name
+  if ![_no_detail_name] and [detail_name] != "" {
+    mutate {
+        replace => {
+            "detailname_field.key" => "detailName"
+            "detailname_field.value.string_value" => "%{detail.name}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailname_field"
+        }
+    }
+  }
+
+  # Replace detail_consumer_auth_info
+  mutate {
+    replace => {
+        "detail_consumer_auth_info" => "%{detail.consumerAuthenticationInformation.token}"
+    }
+    on_error => "_no_detail_consumer_auth_info"
+  }
+  # Logic for detail_consumer_auth_info
+  if ![_no_detail_consumer_auth_info] and [detail_consumer_auth_info] != "" {
+    mutate {
+        replace => {
+            "detailconsumerauth_field.key" => "consumerAuthenticationInformation"
+            "detailconsumerauth_field.value.string_value" => "%{detail.consumerAuthenticationInformation.token}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailconsumerauth_field"
+        }
+    }
+  }
+
+  # Replace detail_id
+  mutate {
+    replace => {
+        "detail_id" => "%{detail.id}"
+    }
+    on_error => "_no_detail_id"
+  }
+  # Logic for detail_id
+  if ![_no_detail_id] and [detail_id] != "" {
+    mutate {
+        replace => {
+            "detailid_field.key" => "detailId"
+            "detailid_field.value.string_value" => "%{detail.id}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailid_field"
+        }
+    }
+  }
+
+  # Replace for detail_orderinformation_amountdetails_authorized_amount
+  mutate {
+    replace => {
+        "detail_orderinformation_amountdetails_authorized_amount" => "%{detail.orderInformation.amountDetails.authorizedAmount}"
+    }
+    on_error => "_no_authorized_amount"
+  }
+  # Logic for detail_orderinformation_amountdetails_authorized_amount
+  if ![_no_authorized_amount] and [detail_orderinformation_amountdetails_authorized_amount] != "" {
+    mutate {
+        replace => {
+            "detailauthamount_field.key" => "authorizedAmount"
+            "detailauthamount_field.value.string_value" => "%{detail.orderInformation.amountDetails.authorizedAmount}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailauthamount_field"
+        }
+    }
+  }
+
+  # Replace detail_paymentinfo_accountfeatures_category
+  mutate {
+    replace => {
+        "detail_paymentinfo_accountfeatures_category" => "%{detail.paymentInformation.accountFeatures.category}"
+    }
+    on_error => "_no_payment_category"
+  }
+  # Logic detail_paymentinfo_accountfeatures_category
+  if ![_no_payment_category] and [detail_paymentinfo_accountfeatures_category] != "" {
+    mutate {
+        replace => {
+            "detailpaymentcategory_field.key" => "paymentInformationCategory"
+            "detailpaymentcategory_field.value.string_value" => "%{detail.paymentInformation.accountFeatures.category}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailpaymentcategory_field"
+        }
+    }
+  }
+
+  # Replace detail_paymentinfo_accountfeatures_category
+  mutate {
+    replace => {
+        "detail_paymentinfo_scheme" => "%{detail.paymentInformation.scheme}"
+    }
+    on_error => "_no_payment_scheme"
+  }
+  # Logic detail_paymentinfo_scheme
+  if ![_no_payment_scheme] and [detail_paymentinfo_scheme] != "" {
+    mutate {
+        replace => {
+            "detailpaymentscheme_field.key" => "paymentInformationScheme"
+            "detailpaymentscheme_field.value.string_value" => "%{detail.paymentInformation.scheme}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailpaymentscheme_field"
+        }
+    }
+  }
+
+  # Replace detail_paymentinfo_bin
+  mutate {
+    replace => {
+        "detail_paymentinfo_bin" => "%{detail.paymentInformation.bin}"
+    }
+    on_error => "_no_payment_bin"
+  }
+  # Logic for detail_paymentinfo_bin
+  if ![_no_payment_bin] and [detail_paymentinfo_bin] != "" {
+    mutate {
+        replace => {
+            "detailpaymentbin_field.key" => "paymentInformationBin"
+            "detailpaymentbin_field.value.string_value" => "%{detail.paymentInformation.bin}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailpaymentbin_field"
+        }
+    }
+  }
+
+  # Replace detail_paymentinfo_account_type
+  mutate {
+    replace => {
+        "detail_paymentinfo_account_type" => "%{detail.paymentInformation.accountType}"
+    }
+    on_error => "_no_payment_account_type"
+  }
+  # Logic for detail_paymentinfo_account_type
+  if ![_no_payment_account_type] and [detail_paymentinfo_account_type] != "" {
+    mutate {
+        replace => {
+            "detailpaymentaccounttype_field.key" => "paymentInformationAccountType"
+            "detailpaymentaccounttype_field.value.string_value" => "%{detail.paymentInformation.accountType}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailpaymentaccounttype_field"
+        }
+    }
+  }
+
+  # Replace detail_paymentinfo_card_issuer
+  mutate {
+    replace => {
+        "detail_paymentinfo_card_issuer" => "%{detail.paymentInformation.issuer}"
+    }
+    on_error => "_no_payment_card_issuer"
+  }
+  # Logic for detail_paymentinfo_card_issuer
+  if ![_no_payment_card_issuer] and [detail_paymentinfo_card_issuer] != "" {
+    mutate {
+        replace => {
+            "detailpaymentcardissuer_field.key" => "paymentCardIssuer"
+            "detailpaymentcardissuer_field.value.string_value" => "%{detail.paymentInformation.issuer}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailpaymentcardissuer_field"
+        }
+    }
+  }
+
+  # Replace detail_paymentinfo_bin_country
+  mutate {
+    replace => {
+        "detail_paymentinfo_bin_country" => "%{detail.paymentInformation.binCountry}"
+    }
+    on_error => "_no_payment_bin_country"
+  }
+  # Logic detail_paymentinfo_bin_country
+  if ![_no_payment_bin_country] and [detail_paymentinfo_bin_country] != "" {
+    mutate {
+        replace => {
+            "detailpaymentbincountry_field.key" => "paymentBinCountry"
+            "detailpaymentbincountry_field.value.string_value" => "%{detail.paymentInformation.binCountry}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailpaymentbincountry_field"
+        }
+    }
+  }
+
+  # Replace detail_processor_information_approval_code
+  mutate {
+    replace => {
+        "detail_processor_information_approval_code" => "%{detail.processorInformation.approvalCode}"
+    }
+    on_error => "_no_processor_approval_code"
+  }
+  # Logic for detail_processor_information_approval_code
+  if ![_no_processor_approval_code] and [detail_processor_information_approval_code] != "" {
+    mutate {
+        replace => {
+            "detailprocessorapprovalcode_field.key" => "processorApprovalCode"
+            "detailprocessorapprovalcode_field.value.string_value" => "%{detail.processorInformation.approvalCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprocessorapprovalcode_field"
+        }
+    }
+  }
+
+  # Replace detail_processor_information_cardverification_result_code
+  mutate {
+    replace => {
+        "detail_processor_information_cardverification_result_code" => "%{detail.processorInformation.cardVerification.resultCode}"
+    }
+    on_error => "_no_processor_card_verification_result_code"
+  }
+  # Logic for detail_processor_information_cardverification_result_code
+  if ![_no_processor_card_verification_result_code] and [detail_processor_information_cardverification_result_code] != "" {
+    mutate {
+        replace => {
+            "detailprocessorcardverificationresultcode_field.key" => "processorCardVerificationResultCode"
+            "detailprocessorcardverificationresultcode_field.value.string_value" => "%{detail.processorInformation.cardVerification.resultCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprocessorcardverificationresultcode_field"
+        }
+    }
+  }
+
+  # Replace detail_processor_network_transaction_id
+  mutate {
+    replace => {
+        "detail_processor_network_transaction_id" => "%{detail.processorInformation.networkTransactionId}"
+    }
+    on_error => "_no_processor_network_transaction_id"
+  }
+  # Logic for detail_processor_network_transaction_id
+  if ![_no_processor_network_transaction_id] and [detail_processor_network_transaction_id] != "" {
+    mutate {
+        replace => {
+            "detailprocessornetworkid_field.key" => "processorNetworkTransactionId"
+            "detailprocessornetworkid_field.value.string_value" => "%{detail.processorInformation.networkTransactionId}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprocessornetworkid_field"
+        }
+    }
+  }
+
+  # Replace detail_processor_response_code
+  mutate {
+    replace => {
+        "detail_processor_response_code" => "%{detail.processorInformation.consumerAuthenticationResponse.code}"
+    }
+    on_error => "_no_processor_consumer_auth_response_code"
+  }
+  # Logic for detail_processor_response_code
+  if ![_no_processor_consumer_auth_response_code] and [detail_processor_response_code] != "" {
+    mutate {
+        replace => {
+            "detailconsumerauthenticationcode_field.key" => "processorConsumerAuthenticationResponseCode"
+            "detailconsumerauthenticationcode_field.value.string_value" => "%{detail.processorInformation.consumerAuthenticationResponse.code}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailconsumerauthenticationcode_field"
+        }
+    }
+  }
+
+  # Replace detail_processor_transaction_id
+  mutate {
+    replace => {
+        "detail_processor_transaction_id" => "%{detail.processorInformation.transactionId}"
+    }
+    on_error => "_no_processor_transaction_id"
+  }
+  # Logic detail_processor_transaction_id
+  if ![_no_processor_transaction_id] and [detail_processor_transaction_id] != "" {
+    mutate {
+        replace => {
+            "detailprocessortransactionid_field.key" => "processorTransactionId"
+            "detailprocessortransactionid_field.value.string_value" => "%{detail.processorInformation.transactionId}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprocessortransactionid_field"
+        }
+    }
+  }
+
+  # Replace detail_processor_response_code
+  mutate {
+    replace => {
+        "detail_processor_response_code" => "%{detail.processorInformation.responseCode}"
+    }
+    on_error => "_no_processor_response_code"
+  }
+  # Logic for detail_processor_response_code
+  if ![_no_processor_response_code] and [detail_processor_response_code] != "" {
+    mutate {
+        replace => {
+            "detailprocessorresponsecode_field.key" => "processorResponseCode"
+            "detailprocessorresponsecode_field.value.string_value" => "%{detail.processorInformation.responseCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprocessorresponsecode_field"
+        }
+    }
+  }
+
+  # Replace detail_processor_avs_code
+  mutate {
+    replace => {
+        "detail_processor_avs_code" => "%{detail.processorInformation.avs.code}"
+    }
+    on_error => "_no_processor_avs_code"
+  }
+  # Logic for detail_processor_avs_code
+  if ![_no_processor_avs_code] and [detail_processor_avs_code] != "" {
+    mutate {
+        replace => {
+            "detailprocessoravscode_field.key" => "processorAvsCode"
+            "detailprocessoravscode_field.value.string_value" => "%{detail.processorInformation.avs.code}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprocessoravscode_field"
+        }
+    }
+  }
+
+  # Replace detail_risk_score_result
+  mutate {
+    replace => {
+        "detail_risk_score_result" => "%{detail.riskInformation.score.result}"
+    }
+    on_error => "_no_risk_score_result"
+  }
+  # Logic for detail_risk_score_result
+  if ![_no_risk_score_result] and [detail_risk_score_result] != "" {
+    mutate {
+        replace => {
+            "detailriskscore_field.key" => "riskScore"
+            "detailriskscore_field.value.string_value" => "%{detail.riskInformation.score.result}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailriskscore_field"
+        }
+    }
+  }
+
+  # Replace detail_risk_profile_early_decision
+  mutate {
+    replace => {
+        "detail_risk_profile_early_decision" => "%{detail.riskInformation.profile.earlyDecision}"
+    }
+    on_error => "_no_risk_profile_early_decision"
+  }
+  # Logic for detail_risk_profile_early_decision
+  if ![_no_risk_profile_early_decision] and [detail_risk_profile_early_decision] != "" {
+    mutate {
+        replace => {
+            "detailprofileearlydecision_field.key" => "earlyDecision"
+            "detailprofileearlydecision_field.value.string_value" => "%{detail.riskInformation.profile.earlyDecision}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprofileearlydecision_field"
+        }
+    }
+  }
+
+  # Replace detail_risk_profile_name
+  mutate {
+    replace => {
+        "detail_risk_profile_name" => "%{detail.riskInformation.profile.name}"
+    }
+    on_error => "_no_profile_name"
+  }
+  # Logic for detail_risk_profile_name
+  if ![_no_profile_name] and [detail_risk_profile_name] != "" {
+    mutate {
+        replace => {
+            "detailprofilename_field.key" => "profileName"
+            "detailprofilename_field.value.string_value" => "%{detail.riskInformation.profile.name}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprofilename_field"
+        }
+    }
+  }
+
+  # Replace detail_risk_profile_selector_rule
+  mutate {
+    replace => {
+        "detail_risk_profile_selector_rule" => "%{detail.riskInformation.profile.selectorRule}"
+    }
+    on_error => "_no_profile_selector_rule"
+  }
+  # Logic for detail_risk_profile_selector_rule
+  if ![_no_profile_selector_rule] and [detail_risk_profile_selector_rule] != "" {
+    mutate {
+        replace => {
+            "detailprofileselectorname_field.key" => "profileRule"
+            "detailprofileselectorname_field.value.string_value" => "%{detail.riskInformation.profile.selectorRule}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailprofileselectorname_field"
+        }
+    }
+  }
+
+  # Replace detail_status
+  mutate {
+    replace => {
+        "detail_status" => "%{detail.status}"
+    }
+    on_error => "_no_detail_status"
+  }
+  # Logic for detail_status
+  if ![_no_detail_status] and [detail_status] != "" {
+    mutate {
+        replace => {
+            "detailstatus_field.key" => "processorStatus"
+            "detailstatus_field.value.string_value" => "%{detail.status}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "detailstatus_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_response_transaction_reference_customer_context
+  mutate {
+    replace => {
+        "detail_address_validation_response_transaction_reference_customer_context" => "%{detail.AddressValidationResponse.Response.TransactionReference.CustomerContext}"
+    }
+    on_error => "_no_transaction_reference_customer_context"
+  }
+  # Logic for detail_address_validation_response_transaction_reference_customer_context
+  if ![_no_transaction_reference_customer_context] and [detail_address_validation_response_transaction_reference_customer_context] != "" {
+    mutate {
+        replace => {
+            "transactionreferencecustomercontext_field.key" => "transactionReferenceCustomerContext"
+            "transactionreferencecustomercontext_field.value.string_value" => "%{detail.AddressValidationResponse.Response.TransactionReference.CustomerContext}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "transactionreferencecustomercontext_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_response_status_code
+  mutate {
+    replace => {
+        "detail_address_validation_response_status_code" => "%{detail.AddressValidationResponse.Response.ResponseStatusCode}"
+    }
+    on_error => "_no_address_validation_response_status_code"
+  }
+  # Logic for detail_address_validation_response_status_code
+  if ![_no_address_validation_response_status_code] and [detail_address_validation_response_status_code] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresponsestatuscode_field.key" => "addressValidationResponseStatusCode"
+            "addressvalidationresponsestatuscode_field.value.string_value" => "%{detail.AddressValidationResponse.Response.ResponseStatusCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresponsestatuscode_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_response_status_description
+  mutate {
+    replace => {
+        "detail_address_validation_response_status_description" => "%{detail.AddressValidationResponse.Response.ResponseStatusDescription}"
+    }
+    on_error => "_no_address_validation_response_description"
+  }
+  # Logic detail_address_validation_response_status_description
+  if ![_no_address_validation_response_description] and [detail_address_validation_response_status_description] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresponsedescription_field.key" => "addressValidationResponseDescription"
+            "addressvalidationresponsedescription_field.value.string_value" => "%{detail.AddressValidationResponse.Response.ResponseStatusDescription}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresponsedescription_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_result_rank
+  mutate {
+    replace => {
+        "detail_address_validation_result_rank" => "%{detail.AddressValidationResponse.AddressValidationResult.Rank}"
+    }
+    on_error => "_no_address_validation_result_rank"
+  }
+  # Logic detail_address_validation_result_rank
+  if ![_no_address_validation_result_rank] and [detail_address_validation_result_rank] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresultrank_field.key" => "addressValidationResultRank"
+            "addressvalidationresultrank_field.value.string_value" => "%{detail.AddressValidationResponse.AddressValidationResult.Rank}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresultrank_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_result_quality
+  mutate {
+    replace => {
+        "detail_address_validation_result_quality" => "%{detail.AddressValidationResponse.AddressValidationResult.Quality}"
+    }
+    on_error => "_no_address_validation_result_quality"
+  }
+  # Logic for detail_address_validation_result_quality
+  if ![_no_address_validation_result_quality] and [detail_address_validation_result_quality] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresultquality_field.key" => "addressValidationResultQuality"
+            "addressvalidationresultquality_field.value.string_value" => "%{detail.AddressValidationResponse.AddressValidationResult.Quality}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresultquality_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_result_address_city
+  mutate {
+    replace => {
+        "detail_address_validation_result_address_city" => "%{detail.AddressValidationResponse.AddressValidationResult.Address.City}"
+    }
+    on_error => "_no_address_validation_result_address_city"
+  }
+  # Logic for detail_address_validation_result_address_city
+  if ![_no_address_validation_result_address_city] and [detail_address_validation_result_address_city] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresultaddresscity_field.key" => "addressValidationResultAddressCity"
+            "addressvalidationresultaddresscity_field.value.string_value" => "%{detail.AddressValidationResponse.AddressValidationResult.Address.City}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresultaddresscity_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_result_address_state_province_code
+  mutate {
+    replace => {
+        "detail_address_validation_result_address_state_province_code" => "%{detail.AddressValidationResponse.AddressValidationResult.Address.StateProvinceCode}"
+    }
+    on_error => "_no_address_validation_result_address_state_province_code"
+  }
+  # Logic for detail_address_validation_result_address_state_province_code
+  if ![_no_address_validation_result_address_state_province_code] and [detail_address_validation_result_address_state_province_code] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresultaddressstateprovincecode_field.key" => "addressValidationResultAddressStateProvinceCode"
+            "addressvalidationresultaddressstateprovincecode_field.value.string_value" => "%{detail.AddressValidationResponse.AddressValidationResult.Address.StateProvinceCode}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresultaddressstateprovincecode_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_result_postal_code_low_end
+  mutate {
+    replace => {
+        "detail_address_validation_result_postal_code_low_end" => "%{detail.AddressValidationResponse.AddressValidationResult.PostalCodeLowEnd}"
+    }
+    on_error => "_no_address_validation_result_postal_code_low_end"
+  }
+  # Logic for detail_address_validation_result_postal_code_low_end
+  if ![_no_address_validation_result_postal_code_low_end] and [detail_address_validation_result_postal_code_low_end] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresultpostalcodelowend_field.key" => "addressValidationResultPostalCodeLowEnd"
+            "addressvalidationresultpostalcodelowend_field.value.string_value" => "%{detail.AddressValidationResponse.AddressValidationResult.PostalCodeLowEnd}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresultpostalcodelowend_field"
+        }
+    }
+  }
+
+  # Replace detail_address_validation_result_postal_code_high_end
+  mutate {
+    replace => {
+        "detail_address_validation_result_postal_code_high_end" => "%{detail.AddressValidationResponse.AddressValidationResult.PostalCodeHighEnd}"
+    }
+    on_error => "_no_address_validation_result_postal_code_high_end"
+  }
+  # Logic for detail_address_validation_result_postal_code_high_end
+  if ![_no_address_validation_result_postal_code_high_end] and [detail_address_validation_result_postal_code_high_end] != "" {
+    mutate {
+        replace => {
+            "addressvalidationresultpostalcodehighend_field.key" => "addressValidationResultPostalCodeHighEnd"
+            "addressvalidationresultpostalcodehighend_field.value.string_value" => "%{detail.AddressValidationResponse.AddressValidationResult.PostalCodeHighEnd}"
+        }
+    }
+    mutate {
+        merge => {
+            "udm_event.idm.read_only_udm.additional.fields" => "addressvalidationresultpostalcodehighend_field"
+        }
+    }
+  }
+
+  mutate {
+    merge => {
+      "@output" => "udm_event"
+    }
+  }
+}
