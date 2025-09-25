@@ -1,3 +1,5 @@
+# Still testing - currently not passing 100% on the validation but it works everytime in the preview **SHRUGS**
+
 filter {
 
     json {
@@ -10,10 +12,6 @@ filter {
         replace => {
             "event.idm.read_only_udm.metadata.event_type" => "GENERIC_EVENT"
         }
-    }
-
-    drop {
-        tag => "TAG_MALFORMED_MESSAGE"
     }
     # Handling for the resource > attributes
     for level1, _resourceLogs in resourceLogs map {
@@ -60,12 +58,13 @@ filter {
     for l1, _resourceLogs in resourceLogs map {
         for l2, _scopeRecords in _resourceLogs.scopeLogs map {
             for l3, _logRecords in _scopeRecords.logRecords map {
-                # Cheeky little cheese to not UDM extract 
-                if [_logRecords][body][stringValue] =~ "^\*DEBUG\*$" {
-                    mutate {
-                        drop => {
-                            tag => "TAG_MALFORMED_MESSAGE"
-                        }
+                if [_logRecords][body][stringValue] =~ /INFO/ {
+                    drop {
+                        tag => "TAG_NO_SECURITY_VALUE"
+                    }
+                } else if [_logRecords][body][stringValue] =~ /ERROR/ {
+                    drop {
+                        tag => "TAG_NO_SECURITY_VALUE"
                     }
                 } else {
                     mutate {
